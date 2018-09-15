@@ -2,6 +2,16 @@
   "manifest_version": 2,
   "name": "Chrome Transcribe",
   "version": "0.1",
+  "permissions": [
+    "tabs",
+    "tabCapture",
+    "downloads",
+    "storage"
+  ],
+  "background": {
+    "scripts": ["app/background.js", "app/worker.js"],
+    "persistent": true
+  },
   "content_scripts": [
     {
       "matches": [
@@ -12,6 +22,22 @@
         "app/content.js"
       ]
     }
-  ]
+  ],
+  "commands": {
+    "start": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+U"
+      },
+      "description": "Start Capture"
+    },
+    "stop": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+X",
+        "mac": "Command+Shift+X"
+      },
+      "description": "Stop Capture"
+    }
+  }
 }
 
