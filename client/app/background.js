@@ -203,8 +203,10 @@ const audioCapture = (timeLimit, muteTab, format, quality, limitRemoved) => {
     }
     chrome.commands.onCommand.addListener(onStopCommand);
     chrome.runtime.onMessage.addListener(onStopClick);
-    mediaRecorder.onComplete = (recorder, blob) => {
-      audioURL = window.URL.createObjectURL(blob);
+    let blob;
+    mediaRecorder.onComplete = (recorder, b) => {
+      audioURL = window.URL.createObjectURL(b);
+      blob = b;
       if(completeTabID) {
         chrome.tabs.sendMessage(completeTabID, {type: "encodingComplete", audioURL});
       }
@@ -226,7 +228,7 @@ const audioCapture = (timeLimit, muteTab, format, quality, limitRemoved) => {
           chrome.tabs.create({url: "app/complete.html"}, (tab) => {
             completeTabID = tab.id;
             let completeCallback = () => {
-              chrome.tabs.sendMessage(tab.id, {type: "createTab", format: format, audioURL, startID: startTabId});
+              chrome.tabs.sendMessage(tab.id, {type: "createTab", format: format, audioURL, blob, startID: startTabId});
             }
             setTimeout(completeCallback, 500);
           });
