@@ -1,3 +1,7 @@
+import('../lib/jquery-3.3.1.min.js');
+
+const apiUrl = 'http://localhost:3000/sendAsBlob';
+
 const extend = function() { //helper function to merge objects
   let target = arguments[0],
       sources = [].slice.call(arguments, 1);
@@ -167,7 +171,6 @@ const audioCapture = (timeLimit, muteTab, format, quality, limitRemoved) => {
   chrome.tabCapture.capture({audio: true}, (stream) => { // sets up stream for capture
     let startTabId; //tab when the capture is started
     let timeout;
-    let completeTabID; //tab when the capture is stopped
     let audioURL = null; //resulting object when encoding is completed
     chrome.tabs.query({active:true, currentWindow: true}, (tabs) => startTabId = tabs[0].id) //saves start tab
     const liveStream = stream;
@@ -205,17 +208,35 @@ const audioCapture = (timeLimit, muteTab, format, quality, limitRemoved) => {
     chrome.runtime.onMessage.addListener(onStopClick);
     let blob;
     mediaRecorder.onComplete = (recorder, b) => {
+      console.log('mediaRecorder.onComplete');
       audioURL = window.URL.createObjectURL(b);
       blob = b;
-      if(completeTabID) {
-        chrome.tabs.sendMessage(completeTabID, {type: "encodingComplete", audioURL});
-      }
+
+      var fd = new FormData();
+      fd.append('data', blob)
+      // chrome.tabs.sendMessage(completeTabID, {type: "encodingComplete", audioURL});
+      $.ajax({
+        url: apiUrl,
+        type: 'POST',
+        data: fd,
+        contentType: false,
+        processData: false,
+        //contentType: 'application/json',
+        success: function(res) {
+          console.log("success", res)
+          return res
+        },
+        error: function(err) {
+          console.log("error", err)
+          return err
+        }
+      });
       mediaRecorder = null;
     }
     mediaRecorder.onEncodingProgress = (recorder, progress) => {
-      if(completeTabID) {
-        chrome.tabs.sendMessage(completeTabID, {type: "encodingProgress", progress: progress});
-      }
+      // if(completeTabID) {
+      //   chrome.tabs.sendMessage(completeTabID, {type: "encodingProgress", progress: progress});
+      // }
     }
 
     const stopCapture = function() {
@@ -225,13 +246,7 @@ const audioCapture = (timeLimit, muteTab, format, quality, limitRemoved) => {
         endTabId = tabs[0].id;
         if(mediaRecorder && startTabId === endTabId){
           mediaRecorder.finishRecording();
-          chrome.tabs.create({url: "app/complete.html"}, (tab) => {
-            completeTabID = tab.id;
-            let completeCallback = () => {
-              chrome.tabs.sendMessage(tab.id, {type: "createTab", format: format, audioURL, blob, startID: startTabId});
-            }
-            setTimeout(completeCallback, 500);
-          });
+          console.log('stopCapture');
           closeStream(endTabId);
         }
       })
