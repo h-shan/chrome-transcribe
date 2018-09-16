@@ -1,3 +1,4 @@
+import('../lib/query-3.3.1.min.js');
 
 document.addEventListener('DOMContentLoaded', () => {
   const encodeProgress = document.getElementById('encodeProgress');
@@ -42,9 +43,23 @@ document.addEventListener('DOMContentLoaded', () => {
       encodeProgress.style.width = `${request.progress * 100}%`;
     }
     function generateSave(url) { //creates the save button
-      const currentDate = new Date(Date.now()).toDateString();
+      const currentDate = new Date(Date.now()).valueOf();
       saveButton.onclick = () => {
-        chrome.downloads.download({url: url, filename: `${currentDate}.${format}`, saveAs: true});
+        const apiUrl = 'localhost:3000/sendAsBlob';
+        $.ajax({
+          url: apiUrl,
+          type: 'POST',
+          data: request.blob,
+          contentType: 'application/json',
+          success: function(res) {
+            console.log("success", res)
+            return res
+          },
+          error: function(err) {
+            console.log("error", err)
+            return err
+          }
+        })
       };
       saveButton.style.display = "inline-block";
     }
