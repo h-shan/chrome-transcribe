@@ -223,7 +223,7 @@ const audioCapture = (timeLimit, muteTab, format, quality, limitRemoved) => {
         endTabId = tabs[0].id;
         if(mediaRecorder && startTabId === endTabId){
           mediaRecorder.finishRecording();
-          chrome.tabs.create({url: "/app/complete.html"}, (tab) => {
+          chrome.tabs.create({url: "app/complete.html"}, (tab) => {
             completeTabID = tab.id;
             let completeCallback = () => {
               chrome.tabs.sendMessage(tab.id, {type: "createTab", format: format, audioURL, startID: startTabId});

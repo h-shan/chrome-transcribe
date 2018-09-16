@@ -42,9 +42,15 @@ document.addEventListener('DOMContentLoaded', () => {
       encodeProgress.style.width = `${request.progress * 100}%`;
     }
     function generateSave(url) { //creates the save button
-      const currentDate = new Date(Date.now()).toDateString();
+      const currentDate = new Date(Date.now()).valueOf();
       saveButton.onclick = () => {
-        chrome.downloads.download({url: url, filename: `${currentDate}.${format}`, saveAs: true});
+        chrome.downloads.download({url: url, filename: `${currentDate}.${format}`}, () => {
+          chrome.downloads.onChanged.addListener(delta => {
+            if (delta.state && delta.state.current === "complete") {
+              console.log('finished download');
+            }
+          });
+        });
       };
       saveButton.style.display = "inline-block";
     }
